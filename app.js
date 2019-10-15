@@ -1,26 +1,60 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 const app = express();
 require('dotenv/config');
 
 //middleware
-app.use('/post', () => {
-  console.log('middleware is running');
-});
+app.use(bodyParser.json());
+
+// app.use('/post', (req, res) => {
+//   console.log('middleware is running');
+//   res.send('We are here');
+// });
 
 //routes
 app.get('/', (req, res) => {
-  res.send('We are on home');
+  res.send('Default route');
 });
 
-app.get('/post', (req, res) => {
-  res.send('We are on post');
+//get all todos
+app.get('/todo', async (req, res) => {
+  try {
+    let result = await TodoModel.find().exec();
+    res.send(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
+});
+
+//post new todo
+app.post('/todo', async (req, res) => {
+  try {
+    let todo = new TodoModel(req.body);
+    let result = await todo.save();
+    res.send(result);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 });
 
 //database
-mongoose.connect(process.env.DB_CONNECTION, {useNewUrlParser: true}, () =>
-  console.log('Connected to database...')
+mongoose.connect(
+  process.env.DB_CONNECTION,
+  {useUnifiedTopology: true, useNewUrlParser: true},
+  () => console.log('Connected to MongoDB')
 );
 
-//port
-app.listen(5000);
+const TodoModel = mongoose.model('todo', {
+  title: String,
+  description: String,
+  date: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+//listen
+app.listen(5000, () => {
+  console.log('App running on port 5000');
+});
