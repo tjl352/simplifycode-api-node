@@ -1,11 +1,22 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const app = express();
+const db = require('./queries');
 require('dotenv/config');
 
 //middleware
+app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+//postgres routes
+app.get('/users', db.getUsers);
+app.get('/users/:id', db.getUserById);
+app.post('/users', db.createUser);
+app.put('/users/:id', db.updateUser);
+app.delete('/users/:id', db.deleteUser);
 
 // app.use('/post', (req, res) => {
 //   console.log('middleware is running');
@@ -18,7 +29,7 @@ app.get('/', (req, res) => {
 });
 
 //get all todos
-app.get('/todo', async (req, res) => {
+app.get('/todos', async (req, res) => {
   try {
     let result = await TodoModel.find().exec();
     res.send(result);
